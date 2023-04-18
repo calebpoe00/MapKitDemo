@@ -10,22 +10,27 @@ import CoreLocation
 import UIKit
 
 
-class ViewController: UIViewController, UISearchBarDelegate {
+class ViewController: UIViewController, UISearchBarDelegate, CLLocationManagerDelegate {
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var searchBar: UISearchBar!
     
+    let locationManager = CLLocationManager()
+    var userLocation: CLLocation?
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        let initialRegion = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194), span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1))
-        mapView.setRegion(initialRegion, animated: false)
-        
+        mapView.showsUserLocation = true
         searchBar.delegate = self
-        
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+
         
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinchGesture(_:)))
         mapView.addGestureRecognizer(pinchGesture)
 
+        mapView.showsUserLocation = true
     }
     
     @objc func handlePinchGesture(_ gestureRecognizer: UIPinchGestureRecognizer) {
@@ -38,16 +43,23 @@ class ViewController: UIViewController, UISearchBarDelegate {
             gestureRecognizer.scale = 1.0
         }
     }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let userLocation = locations.last else { return }
+
+        
+        let initialRegion = MKCoordinateRegion(center: userLocation.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1))
+        mapView.setRegion(initialRegion, animated: false)
+
+        locationManager.stopUpdatingLocation()
+    }
 
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
         
         let searchRequest = MKLocalSearch.Request()
-        searchRequest.naturalLanguageQuery = searchBar.text + " gas stations"
-        
-//        let gasStationFilter = MKPointOfInterestFilter(including: [.gasStation])
-//        searchRequest.pointOfInterestFilter = gasStationFilter
+        searchRequest.naturalLanguageQuery = searchBar.text
         
         let search = MKLocalSearch(request: searchRequest)
         search.start { response, error in
