@@ -44,7 +44,10 @@ class ViewController: UIViewController, UISearchBarDelegate {
         searchBar.resignFirstResponder()
         
         let searchRequest = MKLocalSearch.Request()
-        searchRequest.naturalLanguageQuery = searchBar.text
+        searchRequest.naturalLanguageQuery = searchBar.text + " gas stations"
+        
+//        let gasStationFilter = MKPointOfInterestFilter(including: [.gasStation])
+//        searchRequest.pointOfInterestFilter = gasStationFilter
         
         let search = MKLocalSearch(request: searchRequest)
         search.start { response, error in
@@ -57,10 +60,14 @@ class ViewController: UIViewController, UISearchBarDelegate {
                 return
             }
             
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = mapItem.placemark.coordinate
-            annotation.title = mapItem.name
-            self.mapView.addAnnotation(annotation)
+            self.mapView.removeAnnotations(self.mapView.annotations)
+
+            for mapItem in response!.mapItems {
+                let annotation = MKPointAnnotation()
+                annotation.coordinate = mapItem.placemark.coordinate
+                annotation.title = mapItem.name
+                self.mapView.addAnnotation(annotation)
+            }
 
             
             let region = MKCoordinateRegion(center: mapItem.placemark.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1))
