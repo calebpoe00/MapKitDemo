@@ -83,7 +83,7 @@ class ViewController: UIViewController, UISearchBarDelegate, CLLocationManagerDe
 
             
             let region = MKCoordinateRegion(center: mapItem.placemark.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1))
-            self.mapView.setRegion(region, animated: true)
+            self.mapView.setRegion(region, animated: false)
         }
     }
 }
